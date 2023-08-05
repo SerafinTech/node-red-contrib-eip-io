@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-eip-io",
+  "name": "@serafintech/node-red-contrib-eip-io",
   "version": "1.0.35",
   "description": "",
   "main": "index.js",
