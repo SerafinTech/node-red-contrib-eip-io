@@ -1,0 +1,260 @@
+<script type="text/javascript">
+    RED.nodes.registerType('eip-io scanner',{
+        category: 'config',
+        defaults: {
+            name: {value:"Scanner"},
+            port: {value: 2222},
+        },
+        label: function() {
+            return this.name + this.port.toString();
+        }
+    });
+
+
+    RED.nodes.registerType('eip-io connection',{
+        category: 'config',
+        defaults: {
+            name: {value:""},
+            scanner: {value: "", type: "eip-io scanner"},
+            address: {value: "0.0.0.0"},
+            cfgAss: {value: 100},
+            cfgSize: {value: 0},
+            inputAss: {value: 101},
+            inputSize: {value: 0},
+            outputAss: {value: 102},
+            outputSize: {value: 0},
+            rpi: {value: 10}
+        },
+        label: function() {
+            return this.name||this.address;
+        }
+    });
+
+    RED.nodes.registerType('eip-io in',{
+        category: 'function',
+        color: '#a6bbcf',
+        inputs: 1,
+        outputs: 1,
+        defaults: {
+            name: {value: ""},
+            conn: {value: "", type: "eip-io connection"},
+            byteOffset: {value: 0},
+            bitOffset: {value: 0},
+            bitSize: {value: 1},
+            updateRate: {value: 0}
+        },
+        label: function() {
+            return this.name||"eip-io in";
+        }
+    });
+
+    RED.nodes.registerType('eip-io out',{
+        category: 'function',
+        color: '#a6bbcf',
+        inputs: 1,
+        outputs: 1,
+        defaults: {
+            name: {value: ""},
+            conn: {value: "", type: "eip-io connection"},
+            byteOffset: {value: 0},
+            bitOffset: {value: 0},
+            bitSize: {value: 1}
+        },
+        label: function() {
+            return this.name||"eip-io out";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="eip-io scanner">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-tag"></i> Port</label>
+        <input type="text" id="node-config-input-port" placeholder="Port">
+    </div>
+</script>
+
+
+<script type="text/html" data-template-name="eip-io connection">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-scanner">Scanner</label>
+        <input type="text" id="node-config-input-scanner" placeholder="Scanner">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-address">Address</label>
+        <input type="text" id="node-config-input-address" placeholder="Address">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-cfgAss">Config Assembly</label>
+        <input type="text" id="node-config-input-cfgAss" placeholder="Config">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-cfgSize">Config Size</label>
+        <input type="text" id="node-config-input-cfgSize" placeholder="Config Size">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-inputAss">Input Assembly</label>
+        <input type="text" id="node-config-input-inputAss" placeholder="Input">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inputSize">Input Size</label>
+        <input type="text" id="node-config-input-inputSize" placeholder="Input Size">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-config-input-outputAss">Output Assembly</label>
+        <input type="text" id="node-config-input-outputAss" placeholder="Output">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-outputSize">Output Size</label>
+        <input type="text" id="node-config-input-outputSize" placeholder="Output Size">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-rpi">RPI</label>
+        <input type="text" id="node-config-input-rpi" placeholder="RPI">
+    </div>
+</script>
+
+<script type="text/html" data-template-name="eip-io in">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-conn">Connection</label>
+        <input type="text" id="node-input-conn" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-byteOffset"> Byte Offset</label>
+        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitOffset"> Bit Offset</label>
+        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitSize"> Bit Size</label>
+        <input type="text" id="node-input-bitSize" placeholder="Bit Size">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-updateRate"> Update Rate</label>
+        <input type="text" id="node-input-updateRate" placeholder="Update Rate">
+    </div>
+</script>
+
+<script type="text/html" data-template-name="eip-io out">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-conn">Connection</label>
+        <input type="text" id="node-input-conn" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-byteOffset"> Byte Offset</label>
+        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitOffset"> Bit Offset</label>
+        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitSize"> Bit Size</label>
+        <input type="text" id="node-input-bitSize" placeholder="Bit Size">
+    </div>
+</script>
+
+<script type="text/markdown" data-help-name="eip-io in">
+Ethernet/IP IO Input 
+
+### Inputs
+    
+: payload (any) :  any message will trigger the node to output the current value.
+    
+### Outputs
+
+1. Standard output
+: payload (number) : the value of the input.
+
+### Details
+
+`Update Rate` is the time between checks on change of value.  If the value changes, a message will send. A value of 0 will only allow the output to send a message if a message is sent to the input.
+
+`Byte Offset` , `Bit Offset` and `Bit Size` maps the value to the input assembly instance
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node.
+</script>
+
+<script type="text/markdown" data-help-name="eip-io out">
+Ethernet/IP IO Output 
+
+### Inputs
+    
+: payload (number) :  the value to write to the output of the device.
+
+### Outputs
+
+1. Standard output
+: payload (number) : the value of the output written to the device.
+    
+
+### Details   
+
+`Byte Offset` , `Bit Offset` and `Bit Size` maps where the value is written to the output assembly instance
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node. 
+</script>
+
+<script type="text/markdown" data-help-name="eip-io connection">
+Ethernet/IP IO Device Connection 
+
+### Details   
+
+Assembly configuration will need to be supplied by manufacturer literature.
+
+`rpi` is the communication update rate to the Ethernet/IP device in milliseconds.
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node. 
+</script>
+
+<script type="text/markdown" data-help-name="eip-io scanner">
+Ethernet/IP IO Device Scanner 
+
+### Details   
+
+One scanner node can connect to multiple devices
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node. 
+</script>
