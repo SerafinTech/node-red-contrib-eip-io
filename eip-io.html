@@ -31,7 +31,8 @@
     });
 
     RED.nodes.registerType('eip-io in',{
-        category: 'function',
+        category: 'EthernetIP',
+        icon: 'arrow-in.svg',
         color: '#a6bbcf',
         inputs: 1,
         outputs: 1,
@@ -49,7 +50,9 @@
     });
 
     RED.nodes.registerType('eip-io out',{
-        category: 'function',
+        category: 'EthernetIP',
+        icon: 'arrow-in.svg',
+        align: 'right',
         color: '#a6bbcf',
         inputs: 1,
         outputs: 1,

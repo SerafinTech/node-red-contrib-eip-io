@@ -1,2 +1,2 @@
 # node-red-contrib-ethernet-ip-io
- Ethernet/IP Explicit IO Controller
+ Node-Red Ethernet/IP Explicit IO Controller node

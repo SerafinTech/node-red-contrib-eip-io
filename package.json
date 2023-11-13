@@ -1,19 +1,27 @@
 {
   "name": "@serafintech/node-red-contrib-eip-io",
-  "version": "1.0.35",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Node-Red node to communicate with Ethernet/IP IO devices",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Jason Serafin",
+  "keywords": ["node-red", "PLC" , "Ethernet-IP", "Ethernet/IP"],
   "license": "ISC",
   "node-red": {
+    "version": ">=2.0.0",
     "nodes": {
       "eip-io": "eip-io.js"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SerafinTech/node-red-contrib-eip-io.git"
+  },
+  "bugs": "https://github.com/SerafinTech/node-red-contrib-eip-io/issues",
+  "homepage": "https://github.com/SerafinTech/node-red-contrib-eip-io",
   "dependencies": {
-    "st-ethernet-ip": "^2.6.3"
+    "st-ethernet-ip": "^2.6.7"
   }
 }
