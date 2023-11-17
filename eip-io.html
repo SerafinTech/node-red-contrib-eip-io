@@ -42,10 +42,33 @@
             byteOffset: {value: 0},
             bitOffset: {value: 0},
             bitSize: {value: 1},
-            updateRate: {value: 0}
+            updateRate: {value: 0},
+            bigEndian: {value: false},
+            dataType: {value: 'Buffer'},
+            decimals: {value: 0}
         },
         label: function() {
             return this.name||"eip-io in";
+        },
+        oneditprepare: function() {
+            $("#node-input-dataType").typedInput({
+                types: [
+                    {
+                        value: "Type",
+                        options: [
+                            {value: "Bit", label: "Bit"},
+                            {value: "UInt8", label: "UInteger8"},
+                            {value: "Int8", label: "Integer8"},
+                            {value: "UInt16", label: "UInteger16"},
+                            {value: "Int16", label: "Integer16"},
+                            {value: "UInt32", label: "UInteger32"},
+                            {value: "Integer32", label: "Integer32"},
+                            {value: "Float", label: "Float32"},
+                            {value: "Buffer", label: "Buffer"}
+                        ]
+                    }
+                ]
+            })
         }
     });
 
@@ -149,7 +172,18 @@
         <label for="node-input-bitSize"> Bit Size</label>
         <input type="text" id="node-input-bitSize" placeholder="Bit Size">
     </div>
-
+    <div class="form-row">
+        <label for="node-input-dataType"> Data Type</label>
+        <input type="text" id="node-input-dataType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bigEndian"> Big Endian</label>
+        <input type="checkbox" id="node-input-bigEndian">
+    </div>
+    <div class="form-row">
+        <label for="node-input-decimals"> Decimal Points</label>
+        <input type="text" id="node-input-decimals">
+    </div>
     <div class="form-row">
         <label for="node-input-updateRate"> Update Rate</label>
         <input type="text" id="node-input-updateRate" placeholder="Update Rate">

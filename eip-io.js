@@ -61,9 +61,60 @@ module.exports = function(RED) {
             return parseInt(binaryString,2)
         }
 
+        let convert2 = () => {
+            let result = Buffer.alloc(Math.ceil(n.bitSize / 8))
+            node.conn.inputData.copy(result, 0, n.byteOffset, n.byteOffset + Math.ceil(n.bitSize / 8));
+            
+            switch (n.dataType) {
+                case 'UInt8':
+                    result = result.readUInt8(0);
+                break;
+                case 'Int8':
+                    result = result.readInt8(0);
+                break;
+                case 'UInt16':
+                    result = (n.bigEndian) ? result.readUInt16BE(0) >> (16 - n.bitSize) : result.readUInt16LE(0);            
+                break;
+                case 'Int16':
+                    result = (n.bigEndian) ? result.readInt16BE(0) >> (16 - n.bitSize) : result.readInt16LE(0);             
+                break;
+                case 'UInt32':
+                    result = (n.bigEndian) ? result.readUInt32BE(0) : result.readUInt32LE(0);               
+                break;
+                case 'Int32':
+                    result = (n.bigEndian) ? result.readInt32BE(0) : result.readInt32LE(0);               
+                break;
+                case 'Float':
+                    result = (n.bigEndian) ? result.readFloatBE(0) : result.readFloat32LE(0);
+                break;
+                case 'Bit':
+                    let l = result.length;
+                    switch (l) {
+                        case 1: result = !!((0x01 << n.bitOffset) & result.readInt8(0));
+                        break;
+                        case 2: result = !!((0x01 << n.bitOffset) & result.readUInt16LE(0));
+                        break;
+                        case 4: result = !!((0x01 << n.bitOffset) & result.readUInt32LE(0));
+                        break;
+                    }
+                    
+                break;
+            }
+
+            if (n.decimals > 0) {
+                result = result / (Math.pow(10, n.decimals));
+            }
+            return result;
+        }
+
         this.on('input', function(msg, send, done) {
             send = send || function() { node.send.apply(node,arguments) };
-            msg.payload = convert();
+            try {
+                msg.payload = convert2();
+            } catch {
+                msg.payload = 'Conversion Error!'
+            }
+            
             send(msg);
             if (done) {
                 done();
@@ -72,12 +123,28 @@ module.exports = function(RED) {
 
         if(n.updateRate > 0) {
             updateInterval = setInterval(() => {
-                let nv = convert();
-                if (nv !== cv) {
-                    cv = nv;
-                    let msg = {payload: cv};
-                    node.send(msg)
-                };      
+                let nv;
+                try {
+                    nv = convert2();
+                } catch(e) {
+                    nv = 'Conversion Error! ' + e
+                }
+
+                if (Buffer.isBuffer(nv)) {
+                    if (!cv) cv = Buffer.alloc(nv.length);
+                    if (Buffer.compare(cv,nv) !== 0) {
+                        nv.copy(cv);
+                        let msg = {payload: cv};
+                        node.send(msg)
+                    };
+                } else {
+                    if (nv !== cv) {
+                        cv = nv;
+                        let msg = {payload: cv};
+                        node.send(msg)
+                    };
+                }
+                      
             }, n.updateRate)
         }
 
