@@ -1,0 +1,39 @@
+<script type="text/javascript" src="/resources/@serafintech/node-red-contrib-eip-io/library.js"></script>
+<script type="text/javascript">
+    RED.nodes.registerType('eip-io scanner',{
+        category: 'config',
+        defaults: {
+            name: {value:"Scanner"},
+            port: {value: 2222},
+        },
+        label: function() {
+            return this.name + this.port.toString();
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="eip-io scanner">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-tag"></i> Port</label>
+        <input type="text" id="node-config-input-port" placeholder="Port">
+    </div>
+</script>
+
+<script type="text/markdown" data-help-name="eip-io scanner">
+Ethernet/IP IO Device Scanner 
+
+### Details   
+
+One scanner node can connect to multiple devices
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node. 
+</script>

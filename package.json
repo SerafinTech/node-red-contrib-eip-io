@@ -4,7 +4,8 @@
   "description": "Node-Red Ethernet/IP Implicit IO Controller Node",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify library.js -o ./resources/library.js"
   },
   "author": "Jason Serafin",
   "keywords": ["node-red", "PLC" , "Ethernet-IP", "Ethernet/IP"],
@@ -12,7 +13,10 @@
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
-      "eip-io": "eip-io.js"
+      "eip-io scanner": "nodes/scanner/scanner.js",
+      "eip-io connection": "nodes/connection/connection.js",
+      "eip-io input": "nodes/input/input.js",
+      "eip-io output": "nodes/output/output.js"
     }
   },
   "repository": {

@@ -1,0 +1,152 @@
+<script type="text/javascript">
+
+    RED.nodes.registerType('eip-io connection',{
+        category: 'config',
+        defaults: {
+            name: {value:""},
+            scanner: {value: "", type: "eip-io scanner"},
+            address: {value: "0.0.0.0"},
+            cfgAss: {value: 100},
+            cfgSize: {value: 0},
+            inputAss: {value: 101},
+            inputSize: {value: 0},
+            outputAss: {value: 102},
+            outputSize: {value: 0},
+            rpi: {value: 20},
+            cfgData: {value: []}
+        },
+        label: function() {
+            return this.name||this.address;
+        },
+        oneditprepare: function() {
+            let configDataHeader = $("<div>").append($.parseHTML("<div style='width:90%; display: inline-grid'>Index, Bit Size, Data, Description</div>"))
+            $('#node-config-input-cfgData-container').css('min-height','150px').css('min-width','450px').editableList({
+                height: 300,
+                addItem: function(row, index, data) {
+                    row.css({
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                    });
+                    let fragment = document.createDocumentFragment();
+                    let row1 = $('<div/>',{style:"display:flex; align-items: baseline"}).appendTo(fragment);
+                    $('<span>', {style: 'padding-right: 5px'}).html(index.toString() + ' ').appendTo(row1)
+                    let cfgDataSize = $('<input/>',{class: "node-input-cfg-data-size",type:"text"})
+                        .appendTo(row1)
+                        .typedInput({type: 'num'});
+                    let cfgValue = $('<input/>',{class: "node-input-cfg-data-value",ype:"text"})
+                        .appendTo(row1)
+                        .typedInput({type: 'num'});
+                    let cfgDescription = $('<input/>',{class: "node-input-cfg-data-description",type:"text"})
+                    .appendTo(row1)
+                    
+                    row[0].appendChild(fragment);
+
+                    if (data && data.size !== undefined) cfgDataSize.typedInput('value', data.size);
+                    if (data && data.data !== undefined) cfgValue.typedInput('value', data.data);
+                    if (data && data.description !== undefined) cfgDescription.val( data.description)
+                    
+
+                },
+                header: configDataHeader
+    
+            });
+            let cfgSize = $('#node-config-input-cfgSize')
+            cfgSize.change(()=> {
+                $('#node-config-input-cfgData-container').editableList('empty')
+                if (parseInt(cfgSize.val()) > 0) {
+                    for (let i = 0; i < parseInt(cfgSize.val()); i++) {
+                        $('#node-config-input-cfgData-container').editableList('addItem', this.cfgData[i]) 
+                    }
+                }
+            })
+        },
+        oneditsave: function() {
+            let node = this;
+            let configDataList = $('#node-config-input-cfgData-container');
+            node.cfgData = [];
+
+            let items = configDataList.editableList('items')
+
+            items.each(function(i) {
+                let line = $(this)
+                let cfgSize = line.find('.node-input-cfg-data-size').typedInput('value');
+                let cfgData = line.find('.node-input-cfg-data-value').typedInput('value');
+                let cfgDescription = line.find('.node-input-cfg-data-description').val();
+                node.cfgData.push({
+                    size: cfgSize,
+                    data: cfgData,
+                    description: cfgDescription
+                })
+            })
+            
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="eip-io connection">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-scanner">Scanner</label>
+        <input type="text" id="node-config-input-scanner" placeholder="Scanner">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-address">Address</label>
+        <input type="text" id="node-config-input-address" placeholder="Address">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-cfgAss">Config Assembly</label>
+        <input type="text" id="node-config-input-cfgAss" placeholder="Config">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-cfgSize">Config Size</label>
+        <input type="text" id="node-config-input-cfgSize" placeholder="Config Size">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-inputAss">Input Assembly</label>
+        <input type="text" id="node-config-input-inputAss" placeholder="Input">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inputSize">Input Size</label>
+        <input type="text" id="node-config-input-inputSize" placeholder="Input Size">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-config-input-outputAss">Output Assembly</label>
+        <input type="text" id="node-config-input-outputAss" placeholder="Output">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-outputSize">Output Size</label>
+        <input type="text" id="node-config-input-outputSize" placeholder="Output Size">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-rpi">RPI</label>
+        <input type="text" id="node-config-input-rpi" placeholder="RPI">
+    </div>
+    <div class="form-row node-input-cfgData-container-row">
+        <label for="node-config-input-cfgData-container">Config Data</label>
+        <ol id="node-config-input-cfgData-container"></ol>
+    </div>
+</script>
+
+<script type="text/markdown" data-help-name="eip-io connection">
+Ethernet/IP IO Device Connection 
+
+### Details   
+
+Assembly configuration will need to be supplied by manufacturer literature.
+
+`rpi` is the communication update rate to the Ethernet/IP device in milliseconds.
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node. 
+</script>

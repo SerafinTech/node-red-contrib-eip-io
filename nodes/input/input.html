@@ -1,0 +1,109 @@
+<script type="text/javascript">
+
+    RED.nodes.registerType('eip-io in',{
+        category: 'EthernetIP',
+        icon: 'arrow-in.svg',
+        color: '#a6bbcf',
+        inputs: 1,
+        outputs: 1,
+        defaults: {
+            name: {value: ""},
+            conn: {value: "", type: "eip-io connection"},
+            byteOffset: {value: 0},
+            bitOffset: {value: 0},
+            bitSize: {value: 1},
+            updateRate: {value: 0},
+            bigEndian: {value: false},
+            dataType: {value: 'Buffer'},
+            decimals: {value: 0}
+        },
+        label: function() {
+            return this.name||"eip-io in";
+        },
+        oneditprepare: function() {
+            $("#node-input-dataType").typedInput({
+                types: [
+                    {
+                        value: "Type",
+                        options: [
+                            {value: "Bit", label: "Bit"},
+                            {value: "UInt8", label: "UInteger8"},
+                            {value: "Int8", label: "Integer8"},
+                            {value: "UInt16", label: "UInteger16"},
+                            {value: "Int16", label: "Integer16"},
+                            {value: "UInt32", label: "UInteger32"},
+                            {value: "Integer32", label: "Integer32"},
+                            {value: "Float", label: "Float32"},
+                            {value: "Buffer", label: "Buffer"}
+                        ]
+                    }
+                ]
+            })
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="eip-io in">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-conn">Connection</label>
+        <input type="text" id="node-input-conn" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-byteOffset"> Byte Offset</label>
+        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitOffset"> Bit Offset</label>
+        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bitSize"> Bit Size</label>
+        <input type="text" id="node-input-bitSize" placeholder="Bit Size">
+    </div>
+    <div class="form-row">
+        <label for="node-input-dataType"> Data Type</label>
+        <input type="text" id="node-input-dataType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bigEndian"> Big Endian</label>
+        <input type="checkbox" id="node-input-bigEndian">
+    </div>
+    <div class="form-row">
+        <label for="node-input-decimals"> Decimal Points</label>
+        <input type="text" id="node-input-decimals">
+    </div>
+    <div class="form-row">
+        <label for="node-input-updateRate"> Update Rate</label>
+        <input type="text" id="node-input-updateRate" placeholder="Update Rate">
+    </div>
+</script>
+
+<script type="text/markdown" data-help-name="eip-io in">
+Ethernet/IP IO Input 
+
+### Inputs
+    
+: payload (any) :  any message will trigger the node to output the current value.
+    
+### Outputs
+
+1. Standard output
+: payload (number) : the value of the input.
+
+### Details
+
+`Update Rate` is the time between checks on change of value.  If the value changes, a message will send. A value of 0 will only allow the output to send a message if a message is sent to the input.
+
+`Byte Offset` , `Bit Offset` and `Bit Size` maps the value to the input assembly instance
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node.
+</script>
