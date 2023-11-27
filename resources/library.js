@@ -217,9 +217,10 @@ exports.ParseEDS = function(str) {
 
 exports.GetAssembly = function(eds, n) {
     let assembly = eds.Assembly['Assem'+n.toString()];
+    assembly.id = n
     for(let i = 0; i < assembly.params.length; i++) {
         assembly.params[i].info = {};
-        if (assembly.params[i].name.length > 0) {
+        if (assembly.params[i].name) {
             assembly.params[i].info = eds.Params[assembly.params[i].name];
             assembly.params[i].enum = eds.Params['Enum' + assembly.params[i].name.slice(5)]
         }

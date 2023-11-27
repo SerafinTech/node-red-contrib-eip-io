@@ -13,14 +13,20 @@
             outputAss: {value: 102},
             outputSize: {value: 0},
             rpi: {value: 20},
-            cfgData: {value: []}
+            cfgData: {value: []},
+            edsFile: {value: ''},
+            edsObj: {value: {}},
+            edsConnection: {value: "Connection1"},
+            edsConnectionTypes: {value: [ {value: "Connection1", label: "Connection1"}]}
         },
         label: function() {
             return this.name||this.address;
         },
         oneditprepare: function() {
+            let node = this
             let configDataHeader = $("<div>").append($.parseHTML("<div style='width:90%; display: inline-grid'>Index, Bit Size, Data, Description</div>"))
             $('#node-config-input-cfgData-container').css('min-height','150px').css('min-width','450px').editableList({
+                addButton: false,
                 height: 300,
                 addItem: function(row, index, data) {
                     row.css({
@@ -30,35 +36,108 @@
                     let fragment = document.createDocumentFragment();
                     let row1 = $('<div/>',{style:"display:flex; align-items: baseline"}).appendTo(fragment);
                     $('<span>', {style: 'padding-right: 5px'}).html(index.toString() + ' ').appendTo(row1)
-                    let cfgDataSize = $('<input/>',{class: "node-input-cfg-data-size",type:"text"})
+                    let cfgDataSize = $('<input/>',{class: "node-config-input-cfg-data-size",type:"text"})
                         .appendTo(row1)
-                        .typedInput({type: 'num'});
-                    let cfgValue = $('<input/>',{class: "node-input-cfg-data-value",ype:"text"})
+                        .typedInput({type: 'num'})
+                        .typedInput('width', '10%');
+                    let selections
+                    if (node.configAssembly) {
+                        if (node.configAssembly.params[index].enum) {
+                            selections = node.configAssembly.params[index].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)}))
+                        }
+                    }
+                    let cfgValue = $('<input/>',{class: "node-config-input-cfg-data-value",type:"text"})
+                        .appendTo(row1);
+                    if (selections) {
+                        cfgValue = cfgValue.typedInput({type: 'num', types: [{options: selections, value: node.configAssembly.params[index].info.defaultValue.toString()}]})
+                    } else {
+                        cfgValue = cfgValue.typedInput({type: 'num'})
+                    }
+                    cfgValue.typedInput('width', '30%')
+                    let cfgDescription = $('<input/>',{class: "node-config-input-cfg-data-description",type:"text"})
                         .appendTo(row1)
-                        .typedInput({type: 'num'});
-                    let cfgDescription = $('<input/>',{class: "node-input-cfg-data-description",type:"text"})
-                    .appendTo(row1)
-                    
-                    row[0].appendChild(fragment);
+                        .typedInput({type: 'str'})
+                        .typedInput('width', '60%')
+                
+                    if (node.configAssembly) {
+                        if (node.configAssembly.params[index]) {
+                            cfgDataSize.typedInput('value', node.configAssembly.params[index].size);
+                            cfgValue.typedInput('value', node.configAssembly.params[index].info.defaultValue.toString());
+                            cfgDescription.typedInput('value', node.configAssembly.params[index].info.name.slice(1,-1))
+                        }
+                    }
 
                     if (data && data.size !== undefined) cfgDataSize.typedInput('value', data.size);
-                    if (data && data.data !== undefined) cfgValue.typedInput('value', data.data);
+                    if (data && data.data !== undefined) cfgValue.typedInput('value', data.data.toString());
                     if (data && data.description !== undefined) cfgDescription.val( data.description)
                     
+                    row[0].appendChild(fragment);
 
                 },
                 header: configDataHeader
     
             });
-            let cfgSize = $('#node-config-input-cfgSize')
+            let cfgSize = $('#node-config-input-cfgSize');
             cfgSize.change(()=> {
                 $('#node-config-input-cfgData-container').editableList('empty')
-                if (parseInt(cfgSize.val()) > 0) {
+                if (parseInt(cfgSize.val()) > 0 && !(this.configAssembly)) {
                     for (let i = 0; i < parseInt(cfgSize.val()); i++) {
                         $('#node-config-input-cfgData-container').editableList('addItem', this.cfgData[i]) 
                     }
+                } else {
+                    if (this.configAssembly) {
+                        for (let i = 0; i < this.configAssembly.params.length; i++) {
+                            $('#node-config-input-cfgData-container').editableList('addItem', this.cfgData[i])
+                        }
+                    }
                 }
-            })
+            });
+
+            //EDS Editor
+            this.EDSedit = RED.editor.createEditor({
+                id: 'node-config-input-eds-file',
+                mode: 'ace/mode/text',
+                value: this.edsFile
+            });
+
+            $('#node-config-input-eds-file').on("drop", e => {
+                let node = this
+                e.preventDefault();
+                e.stopPropagation();
+                let file = e.originalEvent.dataTransfer.files[0];
+                let reader = new FileReader();
+                reader.onload = re => {
+                    node.cfgData = [];
+                    node.EDSedit.setValue(re.target.result)
+                    node.edsObj = Serafintech.ParseEDS(node.EDSedit.getValue())
+                    let connections = Object.keys(node.edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' && node.edsObj.ConnectionManager[k].triggerAndTransport === 67174402);
+                    node.edsConnectionTypes = connections.map(c => ({value: c, label: c + ':' + node.edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
+                    $('#node-config-input-edsConnection').typedInput('types',[{options: node.edsConnectionTypes}])
+                }
+                reader.readAsText(file, "UTF-8");
+            });
+            $('#node-config-input-eds-file').on("dragenter dragover", e => {
+                e.preventDefault();
+            });
+            $('#node-config-input-edsConnection').typedInput({types: [{value: this.edsConnection, options: this.edsConnectionTypes}]});
+            $('#node-config-input-edsConnection').change(() => {
+                let conn = this.edsObj.ConnectionManager[$('#node-config-input-edsConnection').val()];
+                this.inputAssembly = Serafintech.GetAssembly(this.edsObj, conn.TOformat.slice(5));
+                this.outputAssembly = Serafintech.GetAssembly(this.edsObj, conn.OTformat.slice(5));
+                if(conn.proxyConfigFormat.length > 0) this.configAssembly = Serafintech.GetAssembly(this.edsObj, conn.proxyConfigFormat.slice(5));
+                if(conn.targetConfigFormat.length > 0) this.configAssembly = Serafintech.GetAssembly(this.edsObj, conn.targetConfigFormat.slice(5));
+                //console.log(conn, inputAssembly, outputAssembly, configAssembly);
+                $('#node-config-input-cfgAss').val(this.configAssembly.id);
+                $('#node-config-input-cfgSize').val(this.configAssembly.size).trigger('change');
+                $('#node-config-input-inputAss').val(this.inputAssembly.id);
+                $('#node-config-input-inputSize').val(this.inputAssembly.size);
+                $('#node-config-input-outputAss').val(this.outputAssembly.id);
+                $('#node-config-input-outputSize').val(this.outputAssembly.size);
+            });
+            
+
+            
+
         },
         oneditsave: function() {
             let node = this;
@@ -69,16 +148,24 @@
 
             items.each(function(i) {
                 let line = $(this)
-                let cfgSize = line.find('.node-input-cfg-data-size').typedInput('value');
-                let cfgData = line.find('.node-input-cfg-data-value').typedInput('value');
-                let cfgDescription = line.find('.node-input-cfg-data-description').val();
+                let cfgSize = line.find('.node-config-input-cfg-data-size').typedInput('value');
+                let cfgData = line.find('.node-config-input-cfg-data-value').typedInput('value');
+                let cfgDescription = line.find('.node-config-input-cfg-data-description').val();
                 node.cfgData.push({
                     size: cfgSize,
                     data: cfgData,
                     description: cfgDescription
                 })
             })
+
+            this.edsFile = this.EDSedit.getValue();
+            this.EDSedit.destroy();
+            delete this.EDSedit;
             
+        },
+        oneditcancel: function() {
+            this.EDSedit.destroy();
+            delete this.EDSedit;
         }
     });
 </script>
@@ -128,9 +215,17 @@
         <label for="node-config-input-rpi">RPI</label>
         <input type="text" id="node-config-input-rpi" placeholder="RPI">
     </div>
-    <div class="form-row node-input-cfgData-container-row">
+    <div class="form-row node-config-input-cfgData-container-row">
         <label for="node-config-input-cfgData-container">Config Data</label>
         <ol id="node-config-input-cfgData-container"></ol>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-eds-file">EDS File</label>
+        <div style="height: 250px; min-height: 150px;" class="node-text-editor" id="node-config-input-eds-file"></div>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-edsConnection">Connection</label>
+        <input type="text" id="node-config-input-edsConnection">
     </div>
 </script>
 
