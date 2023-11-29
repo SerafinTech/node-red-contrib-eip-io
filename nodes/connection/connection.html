@@ -4,14 +4,65 @@
             width: 125px;
         }
 
+        #node-config-input-configdata-row .red-ui-editableList-container {
+            padding: 0px;
+        }
+
+        #node-config-input-configdata-row .red-ui-editableList-container li {
+            padding: 0px;
+        }
+
         #node-config-input-configdata-row .red-ui-editableList-header {
             display: flex;
             background: var(--red-ui-tertiary-background);
-            padding-right:75px;
             border-top-left-radius: 3px;
             border-top-left-radius: 3px;
         }
-        
+
+        #node-config-input-configdata-row .red-ui-editableList-header > div:nth-child(1) {
+            width: 10%;
+        }
+
+        #node-config-input-configdata-row .red-ui-editableList-header > div:nth-child(2) {
+            width: 30%;
+        }
+
+        #node-config-input-configdata-row .red-ui-editableList-header > div:nth-child(3) {
+            flex-grow: 1
+        }
+
+        .node-configdata-entry {
+            display: flex;
+        }
+
+        .node-configdata-entry > span > input[type="text"] {
+            border-radius: 0;
+            border-top-color: var(--red-ui-form-background);
+            border-bottom-color: var(--red-ui-form-background);
+            border-right-color: var(--red-ui-form-background);
+        }
+
+        .node-configdata-entry > span:nth-child(1) {
+            width: 10%;
+            position: relative;
+        }
+
+        .node-configdata-entry > span:nth-child(2) {
+            width: 30%;
+            position: relative;
+        }
+
+        .node-configdata-entry > span:nth-child(3) {
+            flex-grow: 1;
+            width: 60%;
+            position: relative;
+        }
+
+        .node-configdata-entry span .node-input-config-datasize-val,  .node-configdata-entry span .node-input-config-datavalue-val, .node-configdata-entry span .node-input-config-datadesc-val {
+            width: 100%
+        }
+
+
     </style>
 
     <div class="form-row">
@@ -82,6 +133,16 @@
         </div>
 
         <div id="conn-tab-eds" style="display:none">
+            <div class="form-row">
+                <label>EDS File</label>
+            </div>
+            <div class="form-row">
+                <div style="height: 250px; min-height: 150px;" class="node-text-editor" id="eds-editor"></div>
+            </div>
+            <div class="form-row">
+                <label>Connection</label>
+                <input type="text" id="node-config-input-connection">
+            </div>
         </div>
 
     </div>
@@ -115,6 +176,38 @@
             });
     }
 
+    function setupConfigData() {
+
+        $(".node-input-configdata-row").show();
+
+        let configDataList = $('#node-config-input-configdata-container').css('min-height','300px').css('min-width','450px').editableList({
+            header: $('<div><div>Size</div><div>Value</div><div>Description</div>'),
+            addItem: function(container, i, opt) {
+                let row0 = $("<div/>").addClass("node-configdata-entry").appendTo(container)
+                let configSizeSpan = $('<span>').appendTo(row0)
+                let configSize = $("<input/>", {
+                    class: "node-input-config-datasize-val",
+                    type: "text"
+                }).css({
+                }).appendTo(configSizeSpan);
+
+                let configValueSpan = $('<span>').appendTo(row0);
+                let configValue = $("<input/>", {
+                    class: "node-input-config-datavalue-val",
+                    type: "text"
+                }).css({
+                }).appendTo(configValueSpan);
+                
+                let configDescSpan = $('<span>').appendTo(row0);
+                let configDesc = $("<input/>", {
+                    class: "node-input-config-datadesc-val",
+                    type: "text"
+                }).css({
+                }).appendTo(configDescSpan);
+            }
+            });
+    }
+
     RED.nodes.registerType('eip-io connection',{
         category: 'config',
         defaults: {
@@ -127,25 +220,43 @@
             assinput: {value: 0},
             sizeinput: {value: 0},
             assoutput: {value: 0},
-            sizeoutput: {value: 0}      
+            sizeoutput: {value: 0},
+            edsfile: {value: 'Drop EDS File Here!'},
+            connection: {value: ''},
+            connections: {value: [{value: '', label: 'No Connections'}]}     
         },
         oneditprepare: function() {
             let that = this;
             setupTabs();
+            setupConfigData();
+            
 
-            $(".node-input-configdata-row").show();
-            let configDataList = $('#node-config-input-configdata-container').css('min-height','100px').css('min-width','450px').editableList({
-                header: $('<div><div>Size</div><div>Value</div><div>Description</div>'),
-                addItem: function(container, i, opt) {
-                    let row0 = $("<div/>").addClass("node-configdata-entry").appendTo(container)
-                    let configSizeSpan = $('<span>').appendTo(row0)
-                    let configSize = $("<input/>", {
-                        class: "node-input-config-datasize-val",
-                        type: "text"
-                    }).css({
-                    }).appendTo(configSizeSpan)
 
+            //EDS Editor
+            $('#node-config-input-connection').typedInput({types: [{options: that.connections}]})
+
+            that.EDSedit = RED.editor.createEditor({
+                id: 'eds-editor',
+                mode: 'ace/mode/text',
+                value: that.edsfile
+            });
+
+            $('#eds-editor').on("drop", e => {
+                e.preventDefault();
+                e.stopPropagation();
+                let file = e.originalEvent.dataTransfer.files[0];
+                let reader = new FileReader();
+                reader.onload = re => {
+                    that.EDSedit.setValue(re.target.result)
+                    let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue())
+                    let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' && edsObj.ConnectionManager[k].triggerAndTransport === 67174402);
+                    that.connections = conns.map(c => ({value: c, label: c + ':' + edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
+                    $('#node-config-input-connection').typedInput('types',[{options: that.connections}])
                 }
+                reader.readAsText(file, "UTF-8");
+            });
+            $('#eds-editor').on("dragenter dragover", e => {
+                e.preventDefault();
             });
         }
     });
