@@ -24,7 +24,7 @@
         }
 
         #node-config-input-configdata-row .red-ui-editableList-header > div:nth-child(2) {
-            width: 30%;
+            width: 40%;
         }
 
         #node-config-input-configdata-row .red-ui-editableList-header > div:nth-child(3) {
@@ -48,7 +48,7 @@
         }
 
         .node-configdata-entry > span:nth-child(2) {
-            width: 30%;
+            width: 40%;
             position: relative;
         }
 
@@ -60,6 +60,19 @@
 
         .node-configdata-entry span .node-input-config-datasize-val,  .node-configdata-entry span .node-input-config-datavalue-val, .node-configdata-entry span .node-input-config-datadesc-val {
             width: 100%
+        }
+
+        .node-configdata-entry .red-ui-typedInput-container {
+            border-radius: 0;
+            border: none;
+        }
+
+        .node-configdata-entry span .red-ui-typedInput-container {
+            width: 100%
+        }
+
+        .node-configdata-entry > span > span > i {
+            display: none;
         }
 
 
@@ -140,9 +153,11 @@
                 <div style="height: 250px; min-height: 150px;" class="node-text-editor" id="eds-editor"></div>
             </div>
             <div class="form-row">
-                <label>Connection</label>
                 <input type="text" id="node-config-input-connection">
                 <button type="button" class="red-ui-button" id="set-conn-button">Set Connection</button>
+            </div>
+            <div class="form-row">
+                <div id="eds-error" class="hide" style="color: red"><i class="fa fa-exclamation-triangle"></i> EDS Invalid</div>
             </div>
         </div>
 
@@ -150,7 +165,8 @@
 </script>
 
 <script type="text/javascript">
-    
+(function () {
+
     function setupTabs() {
         let tabs = RED.tabs.create({
                 id: "conn-tabs",
@@ -184,7 +200,7 @@
         let configDataList = $('#node-config-input-configdata-container').css('min-height','300px').css('min-width','450px').editableList({
             header: $('<div><div>Size</div><div>Value</div><div>Description</div>'),
             addItem: function(container, i, opt) {
-                console.log(opt)
+                
                 let row0 = $("<div/>").addClass("node-configdata-entry").appendTo(container)
                 let configSizeSpan = $('<span>').appendTo(row0)
                 let configSize = $("<input/>", {
@@ -198,7 +214,10 @@
                     class: "node-input-config-datavalue-val",
                     type: "text"
                 }).css({
-                }).appendTo(configValueSpan);
+                }).appendTo(configValueSpan).typedInput({
+                    type: 'num',
+                    types: ["num", "bin"]
+                });
                 
                 let configDescSpan = $('<span>').appendTo(row0);
                 let configDesc = $("<input/>", {
@@ -209,11 +228,13 @@
 
                 configSize.val(opt.size);
 
-                if (opt.valueObj.options) {
-                    configValue.typedInput({types: [{options: opt.valueObj.options}]});
-                    configValue.typedInput('value', opt.valueObj.value)
-                } else {
-                    configValue.val(opt.valueObj.value);
+                if(opt.valueObj) {
+                    if (opt.valueObj.options) {
+                        configValue.typedInput('types', [{options: opt.valueObj.options}]);
+                        configValue.typedInput('value', opt.valueObj.value)
+                    } else {
+                        configValue.typedInput('value', opt.valueObj.value);
+                    }
                 }
 
                 configDesc.val(opt.description);
@@ -232,22 +253,69 @@
         });
 
         $('#eds-editor').on("drop", e => {
+            $('#eds-error').hide()
             e.preventDefault();
             e.stopPropagation();
             let file = e.originalEvent.dataTransfer.files[0];
             let reader = new FileReader();
             reader.onload = re => {
-                that.EDSedit.setValue(re.target.result)
-                let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue())
-                let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' && edsObj.ConnectionManager[k].triggerAndTransport === 67174402);
-                that.connections = conns.map(c => ({value: c, label: c + ':' + edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
-                $('#node-config-input-connection').typedInput('types',[{options: that.connections}])
+                that.EDSedit.setValue(re.target.result);
+                try {
+                    readEdsConnections(that);
+                } catch (e) {
+                    console.log("EDS Read Error!")
+                }
             }
             reader.readAsText(file, "UTF-8");
         });
         $('#eds-editor').on("dragenter dragover", e => {
             e.preventDefault();
         });
+    }
+
+    function readEdsConnections(that) {
+        let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue())
+        let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' && edsObj.ConnectionManager[k].triggerAndTransport === 67174402);
+        that.connections = conns.map(c => ({value: c, label: c + ':' + edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
+        $('#node-config-input-connection').typedInput('types',[{options: that.connections}])
+    }
+    
+    function setConnectionEvent(that) {
+        $('#set-conn-button').click(() => {
+                $('#eds-error').hide();
+                try {
+                    let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue());
+                    let conn = edsObj.ConnectionManager[$('#node-config-input-connection').val()];
+
+                    let inputAssembly = Serafintech.GetAssembly(edsObj, conn.TOformat.slice(5));
+                    let outputAssembly = Serafintech.GetAssembly(edsObj, conn.OTformat.slice(5));
+                    let configAssembly;
+                    if(conn.proxyConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
+                    if(conn.targetConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
+
+                    $('#node-config-input-assconfig').val(configAssembly.id);
+                    $('#node-config-input-sizeconfig').val(configAssembly.size)
+                    $('#node-config-input-assinput').val(inputAssembly.id);
+                    $('#node-config-input-sizeinput').val(inputAssembly.size);
+                    $('#node-config-input-assoutput').val(outputAssembly.id);
+                    $('#node-config-input-sizeoutput').val(outputAssembly.size);
+
+                    $('#node-config-input-configdata-container').editableList('empty');
+                    for (let i = 0; i < configAssembly.params.length; i++) {
+                        
+                        $('#node-config-input-configdata-container').editableList('addItem', {
+                            size: Math.floor(configAssembly.params[i].size / 8),
+                            valueObj: {
+                                options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
+                                value: (configAssembly.params[i].info.defaultValue) ? configAssembly.params[i].info.defaultValue.toString() : (0).toString()
+                            },
+                            description: (configAssembly.params[i].info.name) ? configAssembly.params[i].info.name.slice(1,-1) : ""
+                        });
+                    }
+                } catch (e) {
+                    $('#eds-error').show()
+                }
+            })
     }
 
     RED.nodes.registerType('eip-io connection',{
@@ -265,49 +333,70 @@
             sizeoutput: {value: 0},
             edsfile: {value: 'Drop EDS File Here!'},
             connection: {value: ''},
-            connections: {value: [{value: '', label: 'No Connections'}]}     
+            connections: {value: [{value: '', label: 'No Connections'}]},
+            configdata: {value: []}     
         },
         oneditprepare: function() {
             let that = this;
             setupTabs();
             setupConfigData();
             setupEdsEditor(that);
+            
+            try {
+                readEdsConnections(that);
+            } catch (e) {
+                $('#eds-error').show();
+                console.log("EDS Read Error!")
+            }
 
-            $('#set-conn-button').click(() => {
+            setConnectionEvent(that); 
+            
+
+            // Init Config Data
+            try {
                 let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue());
-                let conn = edsObj.ConnectionManager[$('#node-config-input-connection').val()];
-
-                let inputAssembly = Serafintech.GetAssembly(edsObj, conn.TOformat.slice(5));
-                let outputAssembly = Serafintech.GetAssembly(edsObj, conn.OTformat.slice(5));
-                let configAssembly;
-                if(conn.proxyConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
-                if(conn.targetConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
-
-                $('#node-config-input-assconfig').val(configAssembly.id);
-                $('#node-config-input-sizeconfig').val(configAssembly.size)
-                $('#node-config-input-assinput').val(inputAssembly.id);
-                $('#node-config-input-sizeinput').val(inputAssembly.size);
-                $('#node-config-input-assoutput').val(outputAssembly.id);
-                $('#node-config-input-sizeoutput').val(outputAssembly.size);
-
-                $('#node-config-input-configdata-container').editableList('empty');
-                for (let i = 0; i < configAssembly.params.length; i++) {
-                    
-                    $('#node-config-input-configdata-container').editableList('addItem', {
-                        size: configAssembly.params[i].size,
-                        valueObj: {
-                            options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
-                            value: (configAssembly.params[i].info.defaultValue) ? configAssembly.params[i].info.defaultValue.toString() : (0).toString()
-                        },
-                        description: (configAssembly.params[i].info.name) ? configAssembly.params[i].info.name.slice(1,-1) : ""
-                    });
-                }
+                let configAssembly = Serafintech.GetAssembly(edsObj, that.assconfig);
+                that.configdata.forEach((item, i) => {
+                $('#node-config-input-configdata-container').editableList('addItem', {
+                    size: item.size,
+                    valueObj: {
+                        options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
+                        value: item.value
+                    },
+                    description: item.description
+                });
             })
+            } catch (e) {
+                
+            }
+            
             
             
         },
         oneditsave: function() {
-
+            this.edsfile = this.EDSedit.getValue();          
+            
+            let that = this;
+            let configDataList =  $('#node-config-input-configdata-container').editableList('items');
+            that.configdata = [];
+            configDataList.each(function(i, item) {
+                let row = $(item);
+                that.configdata.push({
+                    size: row.find('.node-input-config-datasize-val').val(),
+                    value: row.find('.node-input-config-datavalue-val').typedInput('value'),
+                    description: row.find('.node-input-config-datadesc-val').val()
+                });
+            });
+            
+            this.EDSedit.destroy();
+            delete this.EDSedit;
+            
+        },
+        oneditcancel: function() {
+            this.EDSedit.destroy();
+            delete this.EDSedit;
         }
+
     });
+})();
 </script>
