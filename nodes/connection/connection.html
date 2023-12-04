@@ -84,7 +84,7 @@
     </div>
 
     <div class="form-row">
-        <label for="node-config-input-scanner"><i class="fa fa-tag"></i> Scanner</label>
+        <label for="node-config-input-scanner"><i class="fa fa-cube"></i> Scanner</label>
         <input type="text" id="node-config-input-scanner" placeholder="Scanner">
     </div>
 
@@ -96,41 +96,41 @@
         
         <div id="conn-tab-setup" style="display:none">
             <div class="form-row">
-                <label for="node-input-ipaddress"><i class="fa fa-tag"></i> IP Address</label>
+                <label for="node-input-ipaddress"><i class="fa fa-location-arrow"></i> IP Address</label>
                 <input type="text" id="node-config-input-ipaddress" style="width: 120px;">
             </div>
 
             <div class="form-row">
-                <label for="node-input-rpi"><i class="fa fa-tag"></i> RPI</label>
+                <label for="node-input-rpi"><i class="fa fa-repeat"></i> RPI</label>
                 <input type="text" id="node-config-input-rpi" class="st-integer-entry" style="width: 50px;">
             </div>
         
             <div class="form-row">
-                <label for="node-input-aconfig"><i class="fa fa-tag"></i> Config Assembly</label>
+                <label for="node-input-aconfig"><i class="fa fa-cog"></i> Config Assembly</label>
                 <input type="text" id="node-config-input-assconfig"  style="width: 50px;">
             </div>
             <div class="form-row">
-                <label for="node-input-sizeconfig"><i class="fa fa-tag"></i> Config Size</label>
+                <label for="node-input-sizeconfig"><i class="fa fa-cog"></i> Config Size</label>
                 <input type="text" id="node-config-input-sizeconfig"  style="width: 50px;">
             </div>
         
             <div class="form-row">
-                <label for="node-input-assinput"><i class="fa fa-tag"></i> Input Assembly</label>
+                <label for="node-input-assinput"><i class="fa fa-sign-in"></i> Input Assembly</label>
                 <input type="text" id="node-config-input-assinput"  style="width: 50px;">
             </div>
 
             <div class="form-row">
-                <label for="node-input-sizeinput"><i class="fa fa-tag"></i> Input Size</label>
+                <label for="node-input-sizeinput"><i class="fa fa-sign-in"></i> Input Size</label>
                 <input type="text" id="node-config-input-sizeinput"  style="width: 50px;">
             </div>
             
             <div class="form-row">
-                <label for="node-input-assoutput"><i class="fa fa-tag"></i> Output Assembly</label>
+                <label for="node-input-assoutput"><i class="fa fa-sign-out"></i> Output Assembly</label>
                 <input type="text" id="node-config-input-assoutput"  style="width: 50px;">
             </div>
 
             <div class="form-row">
-                <label for="node-input-sizeoutput"><i class="fa fa-tag"></i> Output Size</label>
+                <label for="node-input-sizeoutput"><i class="fa fa-sign-out"></i> Output Size</label>
                 <input type="text" id="node-config-input-sizeoutput"  style="width: 50px;">
             </div>
         
@@ -147,7 +147,7 @@
 
         <div id="conn-tab-eds" style="display:none">
             <div class="form-row">
-                <label>EDS File</label>
+                <label><i class="fa fa-file"></i> EDS File</label>
             </div>
             <div class="form-row">
                 <div style="height: 250px; min-height: 150px;" class="node-text-editor" id="eds-editor"></div>
@@ -178,18 +178,20 @@
 
             tabs.addTab({
                 id: "conn-tab-setup",
-                iconClass: "fa fa-cog",
+                iconClass: "fa fa-wrench",
                 label: "Setup"
             });
 
             tabs.addTab({
                 id: "conn-tab-config",
-                label: "Config"
+                label: "Config",
+                iconClass: "fa fa-cogs"
             });
 
             tabs.addTab({
                 id: "conn-tab-eds",
-                label: "EDS"
+                label: "EDS",
+                iconClass: "fa fa-file-text-o"
             });
     }
 
@@ -258,19 +260,24 @@
             e.stopPropagation();
             let file = e.originalEvent.dataTransfer.files[0];
             let reader = new FileReader();
-            reader.onload = re => {
-                that.EDSedit.setValue(re.target.result);
-                try {
-                    readEdsConnections(that);
-                } catch (e) {
-                    console.log("EDS Read Error!")
-                }
+            reader.onload = re => {  
+                that.EDSedit.setValue(re.target.result);  
             }
             reader.readAsText(file, "UTF-8");
         });
         $('#eds-editor').on("dragenter dragover", e => {
             e.preventDefault();
         });
+
+        that.EDSedit.onDidChangeModelContent(() => {
+            $('#eds-error').hide();
+            try {
+                    readEdsConnections(that);
+                } catch (e) {
+                    console.log("EDS Read Error!");
+                    $('#eds-error').show();
+                }
+        })
     }
 
     function readEdsConnections(that) {
@@ -336,6 +343,9 @@
             connections: {value: [{value: '', label: 'No Connections'}]},
             configdata: {value: []}     
         },
+        label: function() {
+            return this.name||this.ipaddress;
+        },
         oneditprepare: function() {
             let that = this;
             setupTabs();
@@ -367,7 +377,16 @@
                 });
             })
             } catch (e) {
-                
+                that.configdata.forEach((item, i) => {
+                    $('#node-config-input-configdata-container').editableList('addItem', {
+                        size: item.size,
+                        valueObj: {
+                            options: undefined , 
+                            value: item.value
+                        },
+                        description: item.description
+                    });
+                });  
             }
             
             

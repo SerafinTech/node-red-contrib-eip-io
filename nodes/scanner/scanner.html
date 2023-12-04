@@ -4,10 +4,10 @@
         category: 'config',
         defaults: {
             name: {value:"Scanner"},
-            port: {value: 2222},
+            ipaddress: {value: "0.0.0.0"},
         },
         label: function() {
-            return this.name + this.port.toString();
+            return this.name;
         }
     });
 </script>
@@ -18,8 +18,8 @@
         <input type="text" id="node-config-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-config-input-port"><i class="fa fa-tag"></i> Port</label>
-        <input type="text" id="node-config-input-port" placeholder="Port">
+        <label for="node-config-input-port"><i class="fa fa-location-arrow"></i> IP Address</label>
+        <input type="text" id="node-config-input-ipaddress" placeholder="IP Address">
     </div>
 </script>
 

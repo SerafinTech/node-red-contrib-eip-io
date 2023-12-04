@@ -2,7 +2,7 @@ module.exports = function(RED) {
     function Scanner(n) {
         RED.nodes.createNode(this,n);
         const { IO } = require("st-ethernet-ip");
-        this.scanner = new IO.Scanner(parseInt(n.port));
+        this.scanner = new IO.Scanner(2222, n.ipaddress);
         
         this.on('close', (done) => {
             this.scanner.connections = [];
