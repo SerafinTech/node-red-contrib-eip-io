@@ -44,41 +44,46 @@
 </script>
 
 <script type="text/html" data-template-name="eip-io in">
+    <style>
+        .red-ui-editor .form-row label {
+            width: 125px;
+        }
+    </style>
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-conn">Connection</label>
+        <label for="node-input-conn"><i class="fa fa-cube"></i> Connection</label>
         <input type="text" id="node-input-conn" placeholder="">
     </div>
     <div class="form-row">
-        <label for="node-input-byteOffset"> Byte Offset</label>
-        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset">
+        <label for="node-input-byteOffset"><i class="fa fa-arrow-down"></i> Byte Offset</label>
+        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bitOffset"> Bit Offset</label>
-        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset">
+        <label for="node-input-bitOffset"><i class="fa fa-arrow-left"></i> Bit Offset</label>
+        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bitSize"> Bit Size</label>
-        <input type="text" id="node-input-bitSize" placeholder="Bit Size">
+        <label for="node-input-bitSize"><i class="fa fa-cubes"></i> Bit Size</label>
+        <input type="text" id="node-input-bitSize" placeholder="Bit Size" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-dataType"> Data Type</label>
-        <input type="text" id="node-input-dataType">
+        <label for="node-input-dataType"><i class="fa fa-forward"></i> Data Type</label>
+        <input type="text" id="node-input-dataType" style="width: 150px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bigEndian"> Big Endian</label>
-        <input type="checkbox" id="node-input-bigEndian">
+        <label for="node-input-bigEndian"><i class="fa fa-exchange"></i> Big Endian</label>
+        <input type="checkbox" id="node-input-bigEndian" style="width: 25px;">
     </div>
     <div class="form-row">
-        <label for="node-input-decimals"> Decimal Points</label>
-        <input type="text" id="node-input-decimals">
+        <label for="node-input-decimals"><i class="fa fa-caret-right"></i> Decimal Points</label>
+        <input type="text" id="node-input-decimals" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-updateRate"> Update Rate</label>
-        <input type="text" id="node-input-updateRate" placeholder="Update Rate">
+        <label for="node-input-updateRate"><i class="fa fa-repeat"></i> Update Rate</label>
+        <input type="text" id="node-input-updateRate" placeholder="Update Rate" style="width: 50px;">
     </div>
 </script>
 
@@ -99,6 +104,10 @@ Ethernet/IP IO Input
 `Update Rate` is the time between checks on change of value.  If the value changes, a message will send. A value of 0 will only allow the output to send a message if a message is sent to the input.
 
 `Byte Offset` , `Bit Offset` and `Bit Size` maps the value to the input assembly instance
+
+`Data Type` is the type of data transmitted by the device and `Big Endian` will switch the byte order (required by some devices)
+
+`Decimal Points` sets how many times the value is divided by 10 (used to receive a decimal with an integer value)
 
 ### Warning
 

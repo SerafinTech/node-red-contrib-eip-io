@@ -21,25 +21,31 @@
 </script>
 
 <script type="text/html" data-template-name="eip-io out">
+    <style>
+        .red-ui-editor .form-row label {
+            width: 125px;
+        }
+    </style>
+    
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-conn">Connection</label>
+        <label for="node-input-conn"><i class="fa fa-cube"></i> Connection</label>
         <input type="text" id="node-input-conn" placeholder="">
     </div>
     <div class="form-row">
-        <label for="node-input-byteOffset"> Byte Offset</label>
-        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset">
+        <label for="node-input-byteOffset"><i class="fa fa-arrow-down"></i> Byte Offset</label>
+        <input type="text" id="node-input-byteOffset" placeholder="Byte Offset" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bitOffset"> Bit Offset</label>
-        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset">
+        <label for="node-input-bitOffset"><i class="fa fa-arrow-left"></i> Bit Offset</label>
+        <input type="text" id="node-input-bitOffset" placeholder="Bit Offset" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bitSize"> Bit Size</label>
-        <input type="text" id="node-input-bitSize" placeholder="Bit Size">
+        <label for="node-input-bitSize"><i class="fa fa-cubes"></i> Bit Size</label>
+        <input type="text" id="node-input-bitSize" placeholder="Bit Size" style="width: 50px;">
     </div>
 </script>
 

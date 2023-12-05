@@ -12,6 +12,10 @@
             padding: 0px;
         }
 
+        #node-config-input-configdata-row .red-ui-editableList-item-remove {
+            right: 5px;
+        }
+
         #node-config-input-configdata-row .red-ui-editableList-header {
             display: flex;
             background: var(--red-ui-tertiary-background);
@@ -54,7 +58,6 @@
 
         .node-configdata-entry > span:nth-child(3) {
             flex-grow: 1;
-            width: 60%;
             position: relative;
         }
 
@@ -97,7 +100,7 @@
         <div id="conn-tab-setup" style="display:none">
             <div class="form-row">
                 <label for="node-input-ipaddress"><i class="fa fa-location-arrow"></i> IP Address</label>
-                <input type="text" id="node-config-input-ipaddress" style="width: 120px;">
+                <input type="text" id="node-config-input-ipaddress">
             </div>
 
             <div class="form-row">
@@ -163,6 +166,29 @@
 
     </div>
 </script>
+<script type="text/markdown" data-help-name="eip-io connection">
+Ethernet/IP IO connection node.
+
+Configure IP address and connection assembly and size information from manufacturer's documentation.
+
+### Details
+
+## **Setup** tab
+`IP Address` - Enter IP address of device. `RPI` is how many milliseconds between scans. `Config`, `Input`, `Output` Assemblies and Sizes are the connection configuration information
+
+## **Config** tab
+This is where configuration data is entered.  This is only needed if the Config size is > 0 and you would like to change the default configuration of the device.  See manufacturers documentation.
+
+## **EDS** tab
+This is where a devices EDS file can either be dragged-and-dropped or cut-and-pasted into the text area.  If compatible, you will be able to automatically configure the assemblies and config data table by selecting a connection and clicking `Set Connection`
+
+### Warning
+
+Caution when using in production devices
+
+**Fully test everything!** The authors cannot be liable for any
+damage or injury caused by the use of this node.
+</script>
 
 <script type="text/javascript">
 (function () {
@@ -201,6 +227,15 @@
 
         let configDataList = $('#node-config-input-configdata-container').css('min-height','300px').css('min-width','450px').editableList({
             header: $('<div><div>Size</div><div>Value</div><div>Description</div>'),
+            removable: true,
+            buttons: [{
+                label: "clear",
+                icon: "fa fa-ban",
+                name: "Clear Config Data List",
+                click: function() {
+                    configDataList.editableList('empty');
+                }
+            }],
             addItem: function(container, i, opt) {
                 
                 let row0 = $("<div/>").addClass("node-configdata-entry").appendTo(container)
