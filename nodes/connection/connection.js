@@ -53,9 +53,9 @@ module.exports = function(RED) {
         this.conn = this.scanner.addConnection(config, parseInt(n.rpi), n.ipaddress);
 
         this.on('close', (done) => {
-            this.conn.run = false;
-            this.conn = null;
+            this.conn.close();
             done();
+           
         });
     };
 
