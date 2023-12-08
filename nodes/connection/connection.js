@@ -47,8 +47,6 @@ module.exports = function(RED) {
             config.configInstance.data = buf;
         }
 
-        
-
         this.scanner = RED.nodes.getNode(n.scanner).scanner;
         this.conn = this.scanner.addConnection(config, parseInt(n.rpi), n.ipaddress);
 
