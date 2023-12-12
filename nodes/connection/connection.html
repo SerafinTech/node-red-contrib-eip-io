@@ -304,11 +304,12 @@ damage or injury caused by the use of this node.
             e.preventDefault();
         });
 
-        that.EDSedit.onDidChangeModelContent(() => {
+        that.EDSedit.session.on('change', () => {
             $('#eds-error').hide();
             try {
                     readEdsConnections(that);
                 } catch (e) {
+                    console.log(e)
                     console.log("EDS Read Error!");
                     $('#eds-error').show();
                 }
@@ -317,7 +318,7 @@ damage or injury caused by the use of this node.
 
     function readEdsConnections(that) {
         let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue())
-        let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' && edsObj.ConnectionManager[k].triggerAndTransport === 67174402);
+        let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' );
         that.connections = conns.map(c => ({value: c, label: c + ':' + edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
         $('#node-config-input-connection').typedInput('types',[{options: that.connections}])
     }
@@ -332,8 +333,8 @@ damage or injury caused by the use of this node.
                     let inputAssembly = Serafintech.GetAssembly(edsObj, conn.TOformat.slice(5));
                     let outputAssembly = Serafintech.GetAssembly(edsObj, conn.OTformat.slice(5));
                     let configAssembly;
-                    if(conn.proxyConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
-                    if(conn.targetConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
+                    //if(conn.proxyConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
+                    configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
 
                     $('#node-config-input-assconfig').val(configAssembly.id);
                     $('#node-config-input-sizeconfig').val(configAssembly.size)
@@ -343,18 +344,40 @@ damage or injury caused by the use of this node.
                     $('#node-config-input-sizeoutput').val(outputAssembly.size);
 
                     $('#node-config-input-configdata-container').editableList('empty');
+                    let computeSize = 0
                     for (let i = 0; i < configAssembly.params.length; i++) {
                         
-                        $('#node-config-input-configdata-container').editableList('addItem', {
-                            size: Math.floor(configAssembly.params[i].size / 8),
-                            valueObj: {
-                                options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
-                                value: (configAssembly.params[i].info.defaultValue) ? configAssembly.params[i].info.defaultValue.toString() : (0).toString()
-                            },
-                            description: (configAssembly.params[i].info.name) ? configAssembly.params[i].info.name.slice(1,-1) : ""
-                        });
+                        let addItem = (param) => {
+                            let size = Number(param.size).toString();
+                            let value = (param.info.defaultValue) ? param.info.defaultValue.toString() : (param.value !== undefined) ? param.value.toString() : (0).toString()
+                            
+                            value = (param.info.decimalPlaces !== undefined && !isNaN(param.info.decimalPlaces)) ? (Number(value) / Math.pow(10, param.info.decimalPlaces)).toFixed(param.info.decimalPlaces) : value;
+                            
+                            $('#node-config-input-configdata-container').editableList('addItem', {
+                                size: size,
+                                valueObj: {
+                                    options: (param.enum) ? param.enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
+                                    value: value,
+                                    decimalPlaces: param.info.decimalPlaces
+                                },
+                                description: (param.info.name) ? param.info.name.slice(1,-1) : ""
+                            });
+                        }
+                        
+                        if(configAssembly.params[i].name.slice(0,5) === 'Assem') {
+                            for (let j = 0; j < configAssembly.params[i].info.params.length; j++) {
+                                addItem(configAssembly.params[i].info.params[j])
+                            }
+                        } else {
+                            addItem(configAssembly.params[i])
+                        }
+                        
+                        
+                        
                     }
+                    
                 } catch (e) {
+                    console.log(e)
                     $('#eds-error').show()
                 }
             })
@@ -391,7 +414,7 @@ damage or injury caused by the use of this node.
                 readEdsConnections(that);
             } catch (e) {
                 $('#eds-error').show();
-                console.log("EDS Read Error!")
+                console.log(e)
             }
 
             setConnectionEvent(that); 
