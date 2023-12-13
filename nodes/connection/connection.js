@@ -1,5 +1,3 @@
-const { off } = require("process");
-
 module.exports = function(RED) {
     function Connection(n) {
         RED.nodes.createNode(this,n);
@@ -25,7 +23,13 @@ module.exports = function(RED) {
             let bitOffset = 0;
             let bitString = null;
             n.configdata.forEach(data => {
-                let dataArray = JSON.parse(data.value)
+                let dataArray
+                try {
+                    dataArray = JSON.parse(data.value);
+                } catch (e) {
+                    dataArray = null;
+                }
+                
                 if (Array.isArray(dataArray)) {
                     for (let i = 0; i < parseInt(data.size); i++) {
                         buf[offset] = (dataArray[i]) ? dataArray[i] : 0;
@@ -34,9 +38,13 @@ module.exports = function(RED) {
                 } else {
                     let size = Number(data.size);
                     let multi = Math.pow(10, Number(data.decimals));
-                    let value = Number(data.value);
+                    let value;
+                    if (data.value.includes(',')) {
+                        value = data.value.split(',').reduce((p,c) => (Number(p) + Number(c)), 0);
+                    } else {
+                        value = Number(data.value);
+                    }
                     let type = Number(data.type);
-                    console.log(data.type)
                     if(size < 8) {
                         if (bitString === null) bitString = 0;
                         bitString = ((value * multi) << bitOffset) | bitString;
@@ -87,9 +95,9 @@ module.exports = function(RED) {
                     }
                 }
             })
-
+            console.log(buf)
             config.configInstance.data = buf;
-            console.log(config.configInstance.data)
+            
         }
 
         this.scanner = RED.nodes.getNode(n.scanner).scanner;
@@ -97,8 +105,7 @@ module.exports = function(RED) {
 
         this.on('close', (done) => {
             this.conn.close();
-            done();
-           
+            done();   
         });
     };
 

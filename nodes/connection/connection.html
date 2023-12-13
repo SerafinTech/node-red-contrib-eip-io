@@ -280,11 +280,21 @@ damage or injury caused by the use of this node.
                 configSize.val(opt.size);
 
                 if(opt.valueObj) {
+                    let multiple = undefined;
+                    let v = opt.valueObj.value
+                    if (opt.valueObj.options && opt.valueObj.maxValue) {
+                        if (Math.max(...opt.valueObj.options.map(o=>Number(o.value))) < Number(opt.valueObj.maxValue)) {
+                            multiple = "true"
+                            v = (v >>> 0).toString(2).split("").reduce((p,c,i,a) => {
+                                
+                            }, "")
+                        }
+                    }
                     if (opt.valueObj.options) {
-                        configValue.typedInput('types', [{options: opt.valueObj.options}]);
-                        configValue.typedInput('value', opt.valueObj.value)
+                        configValue.typedInput('types', [{options: opt.valueObj.options, multiple: multiple}]);
+                        configValue.typedInput('value', v)
                     } else {
-                        configValue.typedInput('value', opt.valueObj.value);
+                        configValue.typedInput('value', v);
                     }
 
                     if (opt.valueObj.decimalPlaces) {
@@ -379,7 +389,8 @@ damage or injury caused by the use of this node.
                                     options: (param.enum) ? param.enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
                                     value: value,
                                     decimalPlaces: (param.info.decimalPlaces !== undefined && !isNaN(param.info.decimalPlaces)) ? param.info.decimalPlaces : 0,
-                                    type: param.info.dataType
+                                    type: param.info.dataType,
+                                    maxValue: param.info.maxValue
                                 },
                                 description: (param.info.name) ? param.info.name.slice(1,-1) : ""
                             });
@@ -448,7 +459,8 @@ damage or injury caused by the use of this node.
                         options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
                         value: item.value,
                         decimalPlaces: (configAssembly.params[i].info.decimalPlaces !== undefined && !isNaN(configAssembly.params[i].info.decimalPlaces)) ? configAssembly.params[i].info.decimalPlaces : undefined,
-                        type: configAssembly.params[i].info.dataType
+                        type: configAssembly.params[i].info.dataType,
+                        maxValue: configAssembly.params[i].info.maxValue
                     },
                     description: item.description
                 });
