@@ -210,13 +210,13 @@ damage or injury caused by the use of this node.
 
             tabs.addTab({
                 id: "conn-tab-config",
-                label: "Config",
+                label: "Config (Beta)",
                 iconClass: "fa fa-cogs"
             });
 
             tabs.addTab({
                 id: "conn-tab-eds",
-                label: "EDS",
+                label: "EDS (Beta)",
                 iconClass: "fa fa-file-text-o"
             });
     }
@@ -277,21 +277,30 @@ damage or injury caused by the use of this node.
                 }).css({
                 }).appendTo(configDataTypeSpan);
 
+                let configMultipleSpan = $('<span>', {class: "hide"}).appendTo(row0);
+                let configMultiple = $("<input/>", {
+                    class: "node-input-config-multiple",
+                    type: "text" 
+                }).css({
+                }).appendTo(configMultipleSpan);
+
                 configSize.val(opt.size);
 
                 if(opt.valueObj) {
-                    let multiple = undefined;
+                    configMultiple.val('false');
                     let v = opt.valueObj.value
                     if (opt.valueObj.options && opt.valueObj.maxValue) {
                         if (Math.max(...opt.valueObj.options.map(o=>Number(o.value))) < Number(opt.valueObj.maxValue)) {
-                            multiple = "true"
-                            v = (v >>> 0).toString(2).split("").reduce((p,c,i,a) => {
-                                
-                            }, "")
+                            configMultiple.val('true');
+                            if (Number(v) === 0) {
+                                v = '';
+                            } else {
+                                v = [...Number(v).toString(2)].reverse().map((e, i) => (e === '1') ? i : -1).filter( e => e > -1).join(',');
+                            }   
                         }
                     }
                     if (opt.valueObj.options) {
-                        configValue.typedInput('types', [{options: opt.valueObj.options, multiple: multiple}]);
+                        configValue.typedInput('types', [{options: opt.valueObj.options, multiple: (configMultiple.val() === 'true') ? true : undefined}]);
                         configValue.typedInput('value', v)
                     } else {
                         configValue.typedInput('value', v);
@@ -363,8 +372,12 @@ damage or injury caused by the use of this node.
                     let inputAssembly = Serafintech.GetAssembly(edsObj, conn.TOformat.slice(5));
                     let outputAssembly = Serafintech.GetAssembly(edsObj, conn.OTformat.slice(5));
                     let configAssembly;
-                    //if(conn.proxyConfigFormat.length > 0) configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
-                    configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
+                    if (conn.targetConfigFormat.length > 0) { 
+                        configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
+                    } else if(conn.proxyConfigFormat.length > 0) {
+                        configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
+                    }
+                    
 
                     $('#node-config-input-assconfig').val(configAssembly.id);
                     $('#node-config-input-sizeconfig').val(configAssembly.size)
@@ -486,9 +499,23 @@ damage or injury caused by the use of this node.
             that.configdata = [];
             configDataList.each(function(i, item) {
                 let row = $(item);
+                let rowValue = row.find('.node-input-config-datavalue-val').typedInput('value');
+                let multi = row.find('.node-input-config-multiple')
+                if(multi.val() === 'true') {
+                    if (rowValue === '') {
+                        rowValue = 0;
+                    } else {
+                        let valueArray = rowValue.split(',')
+                        rowValue = 0;
+                        valueArray.forEach(i => {
+                                rowValue += Math.pow(2, Number(i)) 
+                        })
+                    }
+                    
+                }
                 that.configdata.push({
                     size: row.find('.node-input-config-datasize-val').val(),
-                    value: row.find('.node-input-config-datavalue-val').typedInput('value'),
+                    value: rowValue,
                     description: row.find('.node-input-config-datadesc-val').val(),
                     decimals: row.find('.node-input-config-datadecimals-val').val(),
                     type: row.find('.node-input-config-datatype-val').val()

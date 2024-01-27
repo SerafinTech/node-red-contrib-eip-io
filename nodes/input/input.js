@@ -44,12 +44,12 @@ module.exports = function(RED) {
                     result = (n.bigEndian) ? result.readInt32BE(0) : result.readInt32LE(0);               
                 break;
                 case 'Float':
-                    result = (n.bigEndian) ? result.readFloatBE(0) : result.readFloat32LE(0);
+                    result = (n.bigEndian) ? result.readFloatBE(0) : result.readFloatLE(0);
                 break;
                 case 'Bit':
                     let l = result.length;
                     switch (l) {
-                        case 1: result = !!((0x01 << n.bitOffset) & result.readInt8(0));
+                        case 1: result = !!((0x01 << n.bitOffset) & result.readUInt8(0));
                         break;
                         case 2: result = !!((0x01 << n.bitOffset) & result.readUInt16LE(0));
                         break;

@@ -1,3 +1,9 @@
+function updateBit(number, bitPosition, bitValue) {
+    const bitValueNormalized = bitValue ? 1 : 0;
+    const clearMask = ~(1 << bitPosition);
+    return (number & clearMask) | (bitValueNormalized << bitPosition);
+}
+
 module.exports = function(RED) {
 
     function OutNode(n) {
@@ -6,33 +12,81 @@ module.exports = function(RED) {
         this.conn = RED.nodes.getNode(n.conn).conn;
         let node = this;
         let statusInterval = null
-        let convert = (nv) => {
-            if (typeof nv === "boolean") {
-                if (nv) {
-                    nv = 1;
-                } else {
-                    nv = 0;
-                }
-            }
-            nv = parseInt(nv);
-            let binaryString = "";
-            for(let i = 0; i < node.conn.outputData.length; i++) {
-                binaryString = ("00000000"+ node.conn.outputData[i].toString(2)).slice(-8) + binaryString
-            }
+        let convert2 = (nv) => {
+            let outValue = nv * (Math.pow(10, n.decimals));
+            let byteOffset = parseInt(n.byteOffset);
+            let bitOffset = parseInt(n.bitOffset)
             
-            nvString = ("0".repeat(n.bitSize)+ nv.toString(2)).slice(-(n.bitSize))
-
-            binaryString = binaryString.substring(0, binaryString.length - n.bitSize - (8 * n.byteOffset) - n.bitOffset) + nvString.toString() + binaryString.substring(binaryString.length - (8 * n.byteOffset) - n.bitOffset, binaryString.length);
-            
-            for (let j = 0; j < node.conn.outputData.length; j++) {
-                node.conn.outputData[j] = parseInt(binaryString.substring(binaryString.length-((j+1)*8),binaryString.length-(j*8)),2)
+            switch (n.dataType) {
+                case 'UInt8':
+                    node.conn.outputData.writeUInt8(parseInt(outValue), byteOffset)
+                break;
+                case 'Int8':
+                    node.conn.outputData.writeInt8(parseInt(outValue), byteOffset)
+                break;
+                case 'UInt16': 
+                    if (n.bigEndian) {
+                        node.conn.outputData.writeUInt16BE(parseInt(outValue), byteOffset)
+                    } else {
+                        node.conn.outputData.writeUInt16LE(parseInt(outValue), byteOffset)
+                    }             
+                break;
+                case 'Int16':
+                    if (n.bigEndian) {
+                        node.conn.outputData.writeInt16BE(parseInt(outValue), byteOffset)
+                    } else {
+                        node.conn.outputData.writeInt16LE(parseInt(outValue), byteOffset)
+                    }            
+                break;
+                case 'UInt32':
+                    if (n.bigEndian) {
+                        node.conn.outputData.writeUInt32BE(parseInt(outValue), byteOffset)
+                    } else {
+                        node.conn.outputData.writeUInt32LE(parseInt(outValue), byteOffset)
+                    }              
+                break;
+                case 'Int32':
+                    if (n.bigEndian) {
+                        node.conn.outputData.writeInt32BE(parseInt(outValue), byteOffset)
+                    } else {
+                        node.conn.outputData.writeInt32LE(parseInt(outValue), byteOffset)
+                    }               
+                break;
+                case 'Float':
+                    if (n.bigEndian) {
+                        node.conn.outputData.writeFloatBE(outValue, byteOffset)
+                    } else {
+                        node.conn.outputData.writeFloatLE(outValue, byteOffset)
+                    }
+                break;
+                case 'Bit':
+                    if (n.bitOffset < 8) {
+                        node.conn.outputData.writeUInt8(updateBit(node.conn.outputData.readUInt8(byteOffset), bitOffset, outValue), byteOffset)
+                    } else if (bitOffset < 16) {
+                        if (n.bigEndian) {
+                            node.conn.outputData.writeUInt16BE(updateBit(node.conn.outputData.readUInt16BE(byteOffset), bitOffset, outValue), byteOffset) 
+                        } else {
+                            node.conn.outputData.writeUInt16LE(updateBit(node.conn.outputData.readUInt16LE(byteOffset), bitOffset, outValue), byteOffset)
+                        }
+                    } else if (bitOffset < 32) {
+                        if (n.bigEndian) {
+                            node.conn.outputData.writeUInt32BE(updateBit(node.conn.outputData.readUInt32BE(byteOffset), bitOffset, outValue), byteOffset) 
+                        } else {
+                            node.conn.outputData.writeUInt32LE(updateBit(node.conn.outputData.readUInt32LE(byteOffset), bitOffset, outValue), byteOffset)
+                        }
+                    }
+                    
+                break;
             }
-            
         }
 
         this.on('input', function(msg, send, done) {
             send = send || function() { node.send.apply(node,arguments) };
-            convert(msg.payload);
+            try {
+                convert2(msg.payload);  
+            } catch (e){
+                msg.payload = e
+            }
             send(msg)
             if (done) {
                 done();

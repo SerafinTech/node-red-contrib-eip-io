@@ -12,10 +12,31 @@
             conn: {value: "", type: "eip-io connection"},
             byteOffset: {value: 0},
             bitOffset: {value: 0},
-            bitSize: {value: 1}
+            dataType: {value: 'Bit'},
+            bigEndian: {value: false},
+            decimals: {value: 0}
         },
         label: function() {
             return this.name||"eip-io out";
+        },
+        oneditprepare: function() {
+            $("#node-input-dataType").typedInput({
+                types: [
+                    {
+                        value: "Type",
+                        options: [
+                            {value: "Bit", label: "Bit"},
+                            {value: "UInt8", label: "UInteger8 (USINT)"},
+                            {value: "Int8", label: "Integer8 (SINT)"},
+                            {value: "UInt16", label: "UInteger16 (UINT)"},
+                            {value: "Int16", label: "Integer16 (INT)"},
+                            {value: "UInt32", label: "UInteger32 (UDINT)"},
+                            {value: "Integer32", label: "Integer32 (DINT)"},
+                            {value: "Float", label: "Float32 (REAL)"}
+                        ]
+                    }
+                ]
+            })
         }
     });
 </script>
@@ -44,8 +65,16 @@
         <input type="text" id="node-input-bitOffset" placeholder="Bit Offset" style="width: 50px;">
     </div>
     <div class="form-row">
-        <label for="node-input-bitSize"><i class="fa fa-cubes"></i> Bit Size</label>
-        <input type="text" id="node-input-bitSize" placeholder="Bit Size" style="width: 50px;">
+        <label for="node-input-dataType"><i class="fa fa-forward"></i> Data Type</label>
+        <input type="text" id="node-input-dataType" style="width: 150px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bigEndian"><i class="fa fa-exchange"></i> Big Endian</label>
+        <input type="checkbox" id="node-input-bigEndian" style="width: 25px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-decimals"><i class="fa fa-caret-right"></i> Decimal Points</label>
+        <input type="text" id="node-input-decimals" style="width: 50px;">
     </div>
 </script>
 

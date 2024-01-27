@@ -8,7 +8,12 @@
     "build": "browserify library.js -o ./resources/library.js"
   },
   "author": "Jason Serafin",
-  "keywords": ["node-red", "PLC" , "Ethernet-IP", "Ethernet/IP"],
+  "keywords": [
+    "node-red",
+    "PLC",
+    "Ethernet-IP",
+    "Ethernet/IP"
+  ],
   "license": "ISC",
   "node-red": {
     "version": ">=2.0.0",
@@ -26,6 +31,7 @@
   "bugs": "https://github.com/SerafinTech/node-red-contrib-eip-io/issues",
   "homepage": "https://github.com/SerafinTech/node-red-contrib-eip-io",
   "dependencies": {
+    "st-eds-parse": "^1.0.0",
     "st-ethernet-ip": "^2.6.7"
   }
 }

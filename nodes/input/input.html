@@ -14,7 +14,7 @@
             bitSize: {value: 1},
             updateRate: {value: 0},
             bigEndian: {value: false},
-            dataType: {value: 'Buffer'},
+            dataType: {value: 'Bit'},
             decimals: {value: 0}
         },
         label: function() {
@@ -27,13 +27,13 @@
                         value: "Type",
                         options: [
                             {value: "Bit", label: "Bit"},
-                            {value: "UInt8", label: "UInteger8"},
-                            {value: "Int8", label: "Integer8"},
-                            {value: "UInt16", label: "UInteger16"},
-                            {value: "Int16", label: "Integer16"},
-                            {value: "UInt32", label: "UInteger32"},
-                            {value: "Integer32", label: "Integer32"},
-                            {value: "Float", label: "Float32"},
+                            {value: "UInt8", label: "UInteger8 (USINT)"},
+                            {value: "Int8", label: "Integer8 (SINT)"},
+                            {value: "UInt16", label: "UInteger16 (UINT)"},
+                            {value: "Int16", label: "Integer16 (INT)"},
+                            {value: "UInt32", label: "UInteger32 (UDINT)"},
+                            {value: "Integer32", label: "Integer32 (DINT)"},
+                            {value: "Float", label: "Float32 (REAL)"},
                             {value: "Buffer", label: "Buffer"}
                         ]
                     }

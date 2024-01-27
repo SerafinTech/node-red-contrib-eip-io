@@ -39,11 +39,9 @@ module.exports = function(RED) {
                     let size = Number(data.size);
                     let multi = Math.pow(10, Number(data.decimals));
                     let value;
-                    if (data.value.includes(',')) {
-                        value = data.value.split(',').reduce((p,c) => (Number(p) + Number(c)), 0);
-                    } else {
-                        value = Number(data.value);
-                    }
+                   
+                    value = Number(data.value);
+                    
                     let type = Number(data.type);
                     if(size < 8) {
                         if (bitString === null) bitString = 0;
@@ -95,7 +93,6 @@ module.exports = function(RED) {
                     }
                 }
             })
-            console.log(buf)
             config.configInstance.data = buf;
             
         }
