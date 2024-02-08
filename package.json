@@ -1,6 +1,6 @@
 {
   "name": "@serafintech/node-red-contrib-eip-io",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Node-Red Ethernet/IP Implicit IO Controller Node",
   "main": "index.js",
   "scripts": {

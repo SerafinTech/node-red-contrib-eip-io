@@ -113,7 +113,7 @@ module.exports = function(RED) {
             } else {
                 node.status({fill:"red",shape:"ring",text:"disconnected"});
             }
-        }, 10)
+        }, 500)
 
         this.on('close', () => {
             clearInterval(statusInterval)
