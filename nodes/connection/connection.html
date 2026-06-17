@@ -157,6 +157,7 @@
             </div>
             <div class="form-row">
                 <input type="text" id="node-config-input-connection">
+                <input type="hidden" id="node-config-input-connection-type">
                 <button type="button" class="red-ui-button" id="set-conn-button">Set Connection</button>
             </div>
             <div class="form-row">
@@ -192,7 +193,6 @@ damage or injury caused by the use of this node.
 
 <script type="text/javascript">
 (function () {
-
     function setupTabs() {
         let tabs = RED.tabs.create({
                 id: "conn-tabs",
@@ -320,7 +320,15 @@ damage or injury caused by the use of this node.
 
     function setupEdsEditor(that) {
         
-        $('#node-config-input-connection').typedInput({types: [{options: that.connections}]})
+        $('#node-config-input-connection').typedInput({
+            types: [
+                {
+                    value: "connection_types",
+                    options: that.connections
+                }
+            ],
+            typeField: 'node-config-input-connection-type'
+        })
 
         that.EDSedit = RED.editor.createEditor({
             id: 'eds-editor',
@@ -345,7 +353,7 @@ damage or injury caused by the use of this node.
 
         that.EDSedit.session.on('change', () => {
             $('#eds-error').hide();
-            try {
+            try { 
                     readEdsConnections(that);
                 } catch (e) {
                     console.log(e)
@@ -359,7 +367,10 @@ damage or injury caused by the use of this node.
         let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue())
         let conns = Object.keys(edsObj.ConnectionManager).filter(k => k.slice(0,10) === 'Connection' );
         that.connections = conns.map(c => ({value: c, label: c + ':' + edsObj.ConnectionManager[c].connectionName.slice(1,-1)}))
-        $('#node-config-input-connection').typedInput('types',[{options: that.connections}])
+        $('#node-config-input-connection').typedInput('types',[{
+            value: "connection_types",
+            options: that.connections
+        }])
     }
     
     function setConnectionEvent(that) {
