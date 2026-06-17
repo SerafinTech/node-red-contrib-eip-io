@@ -371,6 +371,9 @@ damage or injury caused by the use of this node.
 
                     let inputAssembly = Serafintech.GetAssembly(edsObj, conn.TOformat.slice(5));
                     let outputAssembly = Serafintech.GetAssembly(edsObj, conn.OTformat.slice(5));
+                    // Issue 1: Fall back to assembly size when connection size fields are empty or unresolved
+                    if (!conn.TOsize || isNaN(Number(conn.TOsize))) conn.TOsize = inputAssembly.size;
+                    if (!conn.OTsize || isNaN(Number(conn.OTsize))) conn.OTsize = outputAssembly.size;
                     let configAssembly;
                     if (conn.targetConfigFormat.length > 0) { 
                         configAssembly = Serafintech.GetAssembly(edsObj, conn.targetConfigFormat.slice(5));
@@ -378,9 +381,9 @@ damage or injury caused by the use of this node.
                         configAssembly = Serafintech.GetAssembly(edsObj, conn.proxyConfigFormat.slice(5));
                     }
                     
-
-                    $('#node-config-input-assconfig').val(configAssembly.id);
-                    $('#node-config-input-sizeconfig').val(configAssembly.size)
+                    // Issue 2: Guard configAssembly — undefined when connection has no config assembly defined
+                    $('#node-config-input-assconfig').val(configAssembly ? configAssembly.id : 0);
+                    $('#node-config-input-sizeconfig').val(configAssembly ? configAssembly.size : 0)
                     $('#node-config-input-assinput').val(inputAssembly.id);
                     $('#node-config-input-sizeinput').val(inputAssembly.size);
                     $('#node-config-input-assoutput').val(outputAssembly.id);
@@ -388,7 +391,7 @@ damage or injury caused by the use of this node.
 
                     $('#node-config-input-configdata-container').editableList('empty');
                     let computeSize = 0
-                    for (let i = 0; i < configAssembly.params.length; i++) {
+                    for (let i = 0; i < (configAssembly ? configAssembly.params.length : 0); i++) {
                         
                         let addItem = (param) => {
                             let size = Number(param.size).toString();
@@ -466,14 +469,17 @@ damage or injury caused by the use of this node.
                 let edsObj = Serafintech.ParseEDS(that.EDSedit.getValue());
                 let configAssembly = Serafintech.GetAssembly(edsObj, that.assconfig);
                 that.configdata.forEach((item, i) => {
+                    // Issue 3: Bounds check — configdata can be longer than configAssembly.params for complex EDS files
+                    let param = (configAssembly.params[i]) ? configAssembly.params[i] : {};
+                    let paramInfo = param.info || {};
                 $('#node-config-input-configdata-container').editableList('addItem', {
                     size: item.size,
                     valueObj: {
-                        options: (configAssembly.params[i].enum) ? configAssembly.params[i].enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
+                        options: (param.enum) ? param.enum.map(en => ({value: en.value.toString(), label: en.name.slice(1,-1)})) : undefined , 
                         value: item.value,
-                        decimalPlaces: (configAssembly.params[i].info.decimalPlaces !== undefined && !isNaN(configAssembly.params[i].info.decimalPlaces)) ? configAssembly.params[i].info.decimalPlaces : undefined,
-                        type: configAssembly.params[i].info.dataType,
-                        maxValue: configAssembly.params[i].info.maxValue
+                        decimalPlaces: (paramInfo.decimalPlaces !== undefined && !isNaN(paramInfo.decimalPlaces)) ? paramInfo.decimalPlaces : undefined,
+                        type: paramInfo.dataType,
+                        maxValue: paramInfo.maxValue
                     },
                     description: item.description
                 });
