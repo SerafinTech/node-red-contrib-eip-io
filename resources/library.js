@@ -210,6 +210,23 @@ exports.ParseEDS = function(str) {
             }
         });
     }
+
+    if (eds.Params) {
+        Object.keys(eds.ConnectionManager).forEach(item => {
+            if (item.slice(0,10) === 'Connection') {
+                let conn = eds.ConnectionManager[item];
+                ['OTsize','TOsize','OTrpi','TOrpi'].forEach(field => {
+                    if (typeof conn[field] === 'string' && conn[field].slice(0,5) === 'Param') {
+                        let param = eds.Params[conn[field]];
+                        if (param && !isNaN(param.defaultValue)) {
+                            conn[field] = param.defaultValue;
+                        }
+                    }
+                });
+            }
+        });
+    }
+    
     return eds;
 }
 
