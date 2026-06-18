@@ -247,11 +247,19 @@ damage or injury caused by the use of this node.
                 }).appendTo(configSizeSpan);
 
                 let configValueSpan = $('<span>').appendTo(row0);
+                
+                $("<input/>", {
+                    id: "node-input-config-datavalue-val-type-"+i,
+                    type: "hidden"
+                }).css({}).appendTo(configValueSpan)
+                
                 let configValue = $("<input/>", {
+                    id: "node-input-config-datavalue-val-id"+i,
                     class: "node-input-config-datavalue-val",
                     type: "text"
                 }).css({
                 }).appendTo(configValueSpan).typedInput({
+                    typeField: "#node-input-config-datavalue-val-type-"+i,
                     type: 'num',
                     types: ["num", "bin"]
                 });
@@ -300,7 +308,11 @@ damage or injury caused by the use of this node.
                         }
                     }
                     if (opt.valueObj.options) {
-                        configValue.typedInput('types', [{options: opt.valueObj.options, multiple: (configMultiple.val() === 'true') ? true : undefined}]);
+                        configValue.typedInput('types', [{
+                            value: "valueTypes",
+                            options: opt.valueObj.options, 
+                            multiple: (configMultiple.val() === 'true') ? true : undefined
+                        }]);
                         configValue.typedInput('value', v)
                     } else {
                         configValue.typedInput('value', v);
