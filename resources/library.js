@@ -232,7 +232,6 @@ exports.ParseEDS = function(str) {
 
 
 exports.GetAssembly = function(eds, n) {
-    console.log("Assembly",n)
     let assembly = eds.Assembly['Assem'+n.toString()];
     assembly.id = n
     for(let i = 0; i < assembly.params.length; i++) {
